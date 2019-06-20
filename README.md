@@ -1,4 +1,5 @@
 # SpotifySleep
+![feature-graphic](Spotify Sleep-feature-graphic.jpg?raw=true "Title")
 App to send Spotify to sleep after X amount of songs  
 # Screenshot
 ![Image of app](Screenshot_v1.1.jpg?raw=true "Title")
