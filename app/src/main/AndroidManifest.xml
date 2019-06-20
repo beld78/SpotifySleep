@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.spotifysleep"
+    package="yee.fma.spotifysleep"
     android:versionCode="1"
     android:versionName="0.1">
 
@@ -12,7 +12,7 @@
         android:theme="@style/AppTheme"
         android:isolatedProcess="true"
         android:screenOrientation="portrait">
-        <activity android:name=".MainActivity" >
+        <activity android:name="yee.fma.spotifysleep.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
