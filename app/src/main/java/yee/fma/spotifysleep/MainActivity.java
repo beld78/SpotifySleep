@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -26,6 +27,7 @@ public class MainActivity extends AppCompatActivity {
     private SpotifyAppRemote mSpotifyAppRemote;
     private Subscription<PlayerState> playerState;
     private Button button;
+    private Button buttonReset;
     private EditText mEdit;
     // Request code will be used to verify if result comes from the login activity. Can be set to any integer.
     private static final int REQUEST_CODE = 1337;
@@ -33,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
     private Handler mHandler;
     private int numSongs;
     private int counter;
+    private TextView textViewToChange;
 
     private Track firstTrack;
 
@@ -41,7 +44,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         button = findViewById(R.id.button);
+        buttonReset = findViewById(R.id.buttonReset);
         mEdit = findViewById(R.id.editText);
+        textViewToChange = findViewById(R.id.textView);
         mHandler = new Handler();
     }
 
@@ -70,13 +75,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
-
         AuthenticationRequest.Builder builder =
                 new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
-
         builder.setScopes(new String[]{"user-modify-playback-state", "app-remote-control"});
         AuthenticationRequest request = builder.build();
-
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
     }
 
@@ -87,7 +89,6 @@ public class MainActivity extends AppCompatActivity {
         // Check if result comes from the correct activity
         if (requestCode == REQUEST_CODE) {
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
-
             switch (response.getType()) {
                 // Response was successful and contains auth token
                 case TOKEN:
@@ -109,6 +110,9 @@ public class MainActivity extends AppCompatActivity {
 
                                         @Override
                                         public void onClick(final View v) {
+                                            textViewToChange.setText(
+                                                    "Successfully started!");
+
                                             firstTrack = curTrack;
                                             counter = 1;
                                             numSongs = Integer.parseInt(mEdit.getText().toString());
@@ -116,6 +120,15 @@ public class MainActivity extends AppCompatActivity {
                                             playerApi.seekTo(0);
                                             playerApi.resume();
                                             startRepeatingTask();
+                                        }
+                                    });
+                                    buttonReset.setOnClickListener(new View.OnClickListener() {
+
+                                        @Override
+                                        public void onClick(final View v) {
+                                            textViewToChange.setText(
+                                                    "Reset! Click Start to start again.");
+                                            mHandler.removeCallbacksAndMessages(mRunnable);
                                         }
                                     });
                                 }

@@ -1,5 +1,6 @@
 <resources>
     <string name="app_name">SpotifySleep</string>
     <string name="button">Start</string>
+    <string name="buttonReset">Reset</string>
     <string name="enter_songs">Enter number of songs to be played</string>
 </resources>

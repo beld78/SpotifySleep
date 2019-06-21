@@ -1,6 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
+    signingConfigs {
+        rel {
+            storeFile file('B:\\Dropbox\\Uni\\Android\\keystore.jks')
+            storePassword 'linklink'
+            keyAlias = 'key0'
+            keyPassword 'wegjk029'
+        }
+    }
     compileSdkVersion 28
     defaultConfig {
         applicationId "yee.fma.spotifysleep"
@@ -10,17 +18,21 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
+        signingConfig signingConfigs.rel
     }
     buildTypes {
-        release {
+        rel {
+            signingConfig signingConfigs.rel
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            debuggable = false
         }
     }
     compileOptions {
         targetCompatibility = '1.8'
         sourceCompatibility = '1.8'
     }
+    buildToolsVersion = '28.0.3'
 }
 repositories {
     mavenCentral()
