@@ -2,7 +2,6 @@ package yee.fma.spotifysleep;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -10,6 +9,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.gson.Gson;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
 import com.spotify.android.appremote.api.PlayerApi;
@@ -32,45 +32,45 @@ public class MainActivity extends AppCompatActivity {
     // Request code will be used to verify if result comes from the login activity. Can be set to any integer.
     private static final int REQUEST_CODE = 1337;
     private Track curTrack;
-    private Handler mHandler;
     private int numSongs;
     private int counter;
-    private TextView textViewToChange;
-
-    private Track firstTrack;
+    Gson gson;
+    private TextView infoText;
+    private Button buttonUp;
+    private Button buttonDown;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        gson = new Gson();
         button = findViewById(R.id.button);
         buttonReset = findViewById(R.id.buttonReset);
         mEdit = findViewById(R.id.editText);
-        textViewToChange = findViewById(R.id.textView);
-        mHandler = new Handler();
+        infoText = findViewById(R.id.textView);
+        buttonUp = findViewById(R.id.buttonUp);
+        buttonDown = findViewById(R.id.buttonDown);
+        buttonUp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                int num = Integer.parseInt(mEdit.getText().toString()) + 1;
+                mEdit.setText(Integer.toString(num));
+            }
+        });
+        buttonDown.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                int num = Integer.parseInt(mEdit.getText().toString()) - 1;
+                if (num > 0) {
+                    mEdit.setText(Integer.toString(num));
+                } else {
+                    infoText.setText("Number of songs cannot be negative!");
+                }
+            }
+        });
     }
 
-    Runnable mRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (curTrack.name != firstTrack.name) {
-                counter++;
-            }
-            if (counter == numSongs) {
-                //sleep?
-                try {
-                    Thread.sleep(curTrack.duration);
-                } catch (InterruptedException e) {
 
-                } finally {
-                    mSpotifyAppRemote.getPlayerApi().pause();
-                    playerState.cancel();
-                }
-            } else if (counter < numSongs) {
-                mHandler.postDelayed(mRunnable, curTrack.duration);
-            }
-        }
-    };
 
     @Override
     protected void onStart() {
@@ -110,28 +110,32 @@ public class MainActivity extends AppCompatActivity {
 
                                         @Override
                                         public void onClick(final View v) {
-                                            textViewToChange.setText(
-                                                    "Successfully started!");
-
-                                            firstTrack = curTrack;
+                                            infoText.setText("Successfully started!");
                                             counter = 1;
                                             numSongs = Integer.parseInt(mEdit.getText().toString());
                                             PlayerApi playerApi = mSpotifyAppRemote.getPlayerApi();
                                             playerApi.seekTo(0);
                                             playerApi.resume();
-                                            startRepeatingTask();
+                                            Intent intent = new Intent(MainActivity.this, BackgroundService.class);
+                                            intent.putExtra("counter", counter);
+                                            intent.putExtra("numSongs", numSongs);
+                                            intent.putExtra("firstTrack", gson.toJson(curTrack, Track.class));
+                                            BackgroundService.mSpotifyAppRemote = mSpotifyAppRemote;
+
+                                            startService(intent);
                                         }
                                     });
                                     buttonReset.setOnClickListener(new View.OnClickListener() {
 
                                         @Override
                                         public void onClick(final View v) {
-                                            textViewToChange.setText(
-                                                    "Reset! Click Start to start again.");
-                                            mHandler.removeCallbacksAndMessages(mRunnable);
+                                            infoText.setText("Reset! Click Start to start again.");
+                                            Intent myService = new Intent(MainActivity.this, BackgroundService.class);
+                                            stopService(myService);
                                         }
                                     });
                                 }
+
                                 @Override
                                 public void onFailure(Throwable throwable) {
 
@@ -153,9 +157,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void startRepeatingTask() {
-        mRunnable.run();
-    }
 
     private void getCurrentTrack() {
         playerState = mSpotifyAppRemote.getPlayerApi().subscribeToPlayerState();

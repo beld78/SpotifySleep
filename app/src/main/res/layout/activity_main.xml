@@ -28,23 +28,50 @@
 
         <ImageView
             android:id="@+id/imageView2"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_width="88dp"
+            android:layout_height="85dp"
             android:contentDescription="arrow facing downwards"
             app:srcCompat="@drawable/ic_arrow_downward_black_24dp" />
 
-        <EditText
-            android:id="@+id/editText"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:layout_marginTop="50dp"
-            android:background="@drawable/back"
-            android:ems="10"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="161dp"
             android:gravity="center"
-            android:inputType="numberDecimal"
-            android:text="3"
-            android:textColor="@color/text"
-            android:textSize="30sp" />
+            android:orientation="horizontal">
+
+            <EditText
+                android:id="@+id/editText"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginLeft="50dp"
+                android:background="@drawable/back"
+                android:ems="10"
+                android:gravity="center"
+                android:inputType="numberDecimal"
+                android:text="3"
+                android:textColor="@color/text"
+                android:textSize="30sp" />
+
+            <LinearLayout
+                android:layout_width="50dp"
+                android:layout_height="100dp"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <Button
+                    android:id="@+id/buttonUp"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/ic_arrow_upward_black_24dp" />
+
+                <Button
+                    android:id="@+id/buttonDown"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:background="@drawable/ic_arrow_downward_black_24dp" />
+            </LinearLayout>
+
+        </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
