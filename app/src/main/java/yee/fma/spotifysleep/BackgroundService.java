@@ -26,9 +26,23 @@ public class BackgroundService extends IntentService {
     private int numSongs;
     private int counter;
     private Track firstTrack;
+    long startTime;
+    private long totalTime;
     Runnable mRunnable = new Runnable() {
         @Override
         public void run() {
+            totalTime += curTrack.duration;
+            if (totalTime >= 360000) {
+                try {
+                    Thread.sleep(System.currentTimeMillis() - startTime - 3000);
+                } catch (InterruptedException e) {
+                } finally {
+                    System.out.println("Last song finished");
+                    mSpotifyAppRemote.getPlayerApi().pause();
+                    playerState.cancel();
+
+                }
+            }
             System.out.println("Current song number: " + counter + " \n current song: " + curTrack.name);
             if (curTrack.name != firstTrack.name) {
                 counter++;
@@ -68,6 +82,7 @@ public class BackgroundService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
+        startTime = System.currentTimeMillis();
         System.out.println("YEEFMA");
         getCurrentTrack();
         counter = Integer.parseInt(intent.getStringExtra("counter"));
