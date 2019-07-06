@@ -5,7 +5,7 @@ android {
         rel {
             storeFile file('B:\\Dropbox\\Uni\\Android\\keystore.jks')
             storePassword 'linklink'
-            keyAlias = 'key0'
+            keyAlias = 'upload'
             keyPassword 'wegjk029'
         }
     }
@@ -14,7 +14,7 @@ android {
         applicationId "yee.fma.spotifysleep"
         minSdkVersion 15
         targetSdkVersion 28
-        versionCode 2
+        versionCode 3
         versionName "1.1"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
@@ -36,13 +36,14 @@ android {
 }
 repositories {
     mavenCentral()
+    maven { url "https://jitpack.io" }
     flatDir {
         dirs 'libs'
     }
 }
 
 dependencies {
-
+    implementation 'com.github.kaaes:spotify-web-api-android:0.4.1'
     implementation 'com.spotify.android:auth:1.0.0-alpha'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.0.2'

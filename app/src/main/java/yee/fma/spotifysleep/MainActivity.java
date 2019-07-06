@@ -6,13 +6,13 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.gson.Gson;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
-import com.spotify.android.appremote.api.PlayerApi;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
 import com.spotify.protocol.client.Subscription;
 import com.spotify.protocol.types.PlayerState;
@@ -33,11 +33,12 @@ public class MainActivity extends AppCompatActivity {
     private static final int REQUEST_CODE = 1337;
     private Track curTrack;
     private int numSongs;
-    private int counter;
-    Gson gson;
+    private int counter = 1;
+    private Gson gson;
     private TextView infoText;
     private Button buttonUp;
     private Button buttonDown;
+    private Intent intent;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,17 +69,42 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-    }
 
+        buttonReset.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                infoText.setText("Reset! Click Start to start again.");
+                Intent myService = new Intent(MainActivity.this, BackgroundService.class);
+                stopService(myService);
+            }
+        });
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(final View v) {
+                infoText.setText("Successfully started!");
+                counter = 1;
+                numSongs = Integer.parseInt(mEdit.getText().toString());
+                intent = new Intent(MainActivity.this, BackgroundService.class);
+                intent.putExtra("counter", counter);
+                intent.putExtra("numSongs", numSongs);
+                startService(intent);
+            }
+        });
+    }
 
 
     @Override
     protected void onStart() {
         super.onStart();
+        buildConnection();
+    }
+
+    private void buildConnection() {
         AuthenticationRequest.Builder builder =
                 new AuthenticationRequest.Builder(CLIENT_ID, AuthenticationResponse.Type.TOKEN, REDIRECT_URI);
         builder.setScopes(new String[]{"user-modify-playback-state", "app-remote-control"});
         AuthenticationRequest request = builder.build();
+        BackgroundService.request = request;
         AuthenticationClient.openLoginActivity(this, REQUEST_CODE, request);
     }
 
@@ -86,63 +112,52 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent intent) {
         super.onActivityResult(requestCode, resultCode, intent);
 
+
+        this.intent = new Intent(MainActivity.this, BackgroundService.class);
+        this.intent.putExtra("counter", counter);
+        this.intent.putExtra("numSongs", numSongs);
+        startService(this.intent);
+
         // Check if result comes from the correct activity
         if (requestCode == REQUEST_CODE) {
             AuthenticationResponse response = AuthenticationClient.getResponse(resultCode, intent);
             switch (response.getType()) {
                 // Response was successful and contains auth token
                 case TOKEN:
-                    // Handle successful response
+                    System.out.println("EXPIRES IN " + response.getExpiresIn() + " YEE12");
+                    // Handle successful response - start service
+                    this.intent = new Intent(MainActivity.this, BackgroundService.class);
+                    this.intent.putExtra("counter", counter);
+                    this.intent.putExtra("numSongs", numSongs);
+                    startService(this.intent);
+
+                    //auslagern
+
                     ConnectionParams connectionParams =
                             new ConnectionParams.Builder(CLIENT_ID)
                                     .setRedirectUri(REDIRECT_URI)
                                     .build();
-                    SpotifyAppRemote.connect(MainActivity.this, connectionParams,
+                    SpotifyAppRemote.connect(this, connectionParams,
                             new Connector.ConnectionListener() {
-
                                 @Override
                                 public void onConnected(SpotifyAppRemote spotifyAppRemote) {
                                     mSpotifyAppRemote = spotifyAppRemote;
                                     getCurrentTrack();
 
                                     // Now you can start interacting with App Remote
-                                    button.setOnClickListener(new View.OnClickListener() {
 
-                                        @Override
-                                        public void onClick(final View v) {
-                                            infoText.setText("Successfully started!");
-                                            counter = 1;
-                                            numSongs = Integer.parseInt(mEdit.getText().toString());
-                                            PlayerApi playerApi = mSpotifyAppRemote.getPlayerApi();
-                                            playerApi.seekTo(0);
-                                            playerApi.resume();
-                                            Intent intent = new Intent(MainActivity.this, BackgroundService.class);
-                                            intent.putExtra("counter", counter);
-                                            intent.putExtra("numSongs", numSongs);
-                                            intent.putExtra("firstTrack", gson.toJson(curTrack, Track.class));
-                                            BackgroundService.mSpotifyAppRemote = mSpotifyAppRemote;
 
-                                            startService(intent);
-                                        }
-                                    });
-                                    buttonReset.setOnClickListener(new View.OnClickListener() {
+                                    BackgroundService.listener = this;
 
-                                        @Override
-                                        public void onClick(final View v) {
-                                            infoText.setText("Reset! Click Start to start again.");
-                                            Intent myService = new Intent(MainActivity.this, BackgroundService.class);
-                                            stopService(myService);
-                                        }
-                                    });
                                 }
 
                                 @Override
                                 public void onFailure(Throwable throwable) {
+                                    Toast.makeText(MainActivity.this, "Something went wrong when attempting to connect", Toast.LENGTH_SHORT).show();
 
                                     // Something went wrong when attempting to connect! Handle errors here
                                 }
                             });
-
                     break;
 
                 // Auth flow returned an error
@@ -156,7 +171,6 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
-
 
     private void getCurrentTrack() {
         playerState = mSpotifyAppRemote.getPlayerApi().subscribeToPlayerState();
