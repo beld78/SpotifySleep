@@ -103,6 +103,7 @@ public class MainActivity extends AppCompatActivity {
                                 @Override
                                 public void onConnected(SpotifyAppRemote spotifyAppRemote) {
                                     mSpotifyAppRemote = spotifyAppRemote;
+                                    long startTime = System.currentTimeMillis();
                                     getCurrentTrack();
 
                                     // Now you can start interacting with App Remote
@@ -117,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
                                             Intent intent = new Intent(MainActivity.this, BackgroundService.class);
                                             intent.putExtra("counter", counter);
                                             intent.putExtra("numSongs", numSongs);
+                                            intent.putExtra("startTime", startTime);
                                             intent.putExtra("firstTrack", gson.toJson(curTrack, Track.class));
                                             BackgroundService.mSpotifyAppRemote = mSpotifyAppRemote;
                                             MainActivity.this.startService(intent);

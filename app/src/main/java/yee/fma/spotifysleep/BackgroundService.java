@@ -73,8 +73,6 @@ public class BackgroundService extends IntentService {
 
     /**
      * Creates an IntentService.  Invoked by your subclass's constructor.
-     *
-     * @param name Used to name the worker thread, important only for debugging.
      */
     public BackgroundService() {
         super("BackgroundService");
@@ -82,7 +80,7 @@ public class BackgroundService extends IntentService {
 
     @Override
     protected void onHandleIntent(Intent intent) {
-        startTime = System.currentTimeMillis();
+        startTime = intent.getLongExtra("startTime", 0);
         PlayerApi playerApi = mSpotifyAppRemote.getPlayerApi();
         playerApi.seekTo(0);
         playerApi.resume();
