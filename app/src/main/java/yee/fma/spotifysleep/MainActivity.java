@@ -2,6 +2,7 @@ package yee.fma.spotifysleep;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -12,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.gson.Gson;
 import com.spotify.android.appremote.api.ConnectionParams;
 import com.spotify.android.appremote.api.Connector;
-import com.spotify.android.appremote.api.PlayerApi;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
 import com.spotify.protocol.client.Subscription;
 import com.spotify.protocol.types.PlayerState;
@@ -113,16 +113,13 @@ public class MainActivity extends AppCompatActivity {
                                             infoText.setText("Successfully started!");
                                             counter = 1;
                                             numSongs = Integer.parseInt(mEdit.getText().toString());
-                                            PlayerApi playerApi = mSpotifyAppRemote.getPlayerApi();
-                                            playerApi.seekTo(0);
-                                            playerApi.resume();
+                                            Log.d("TEST", "counter: " + counter + " num songs: " + numSongs);
                                             Intent intent = new Intent(MainActivity.this, BackgroundService.class);
                                             intent.putExtra("counter", counter);
                                             intent.putExtra("numSongs", numSongs);
                                             intent.putExtra("firstTrack", gson.toJson(curTrack, Track.class));
                                             BackgroundService.mSpotifyAppRemote = mSpotifyAppRemote;
-
-                                            startService(intent);
+                                            MainActivity.this.startService(intent);
                                         }
                                     });
                                     buttonReset.setOnClickListener(new View.OnClickListener() {
@@ -130,8 +127,8 @@ public class MainActivity extends AppCompatActivity {
                                         @Override
                                         public void onClick(final View v) {
                                             infoText.setText("Reset! Click Start to start again.");
-                                            Intent myService = new Intent(MainActivity.this, BackgroundService.class);
-                                            stopService(myService);
+                                            Intent intent = new Intent(MainActivity.this, BackgroundService.class);
+                                            stopService(intent);
                                         }
                                     });
                                 }

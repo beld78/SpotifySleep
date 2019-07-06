@@ -5,9 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Handler;
 import android.os.IBinder;
-import android.widget.Toast;
+import android.util.Log;
 
 import com.google.gson.Gson;
+import com.spotify.android.appremote.api.PlayerApi;
 import com.spotify.android.appremote.api.SpotifyAppRemote;
 import com.spotify.protocol.client.Subscription;
 import com.spotify.protocol.types.PlayerState;
@@ -24,7 +25,7 @@ public class BackgroundService extends IntentService {
     private Track curTrack;
     private Handler mHandler = new Handler();
     private int numSongs;
-    private int counter;
+    private int counter = 1;
     private Track firstTrack;
     long startTime;
     private long totalTime;
@@ -32,23 +33,26 @@ public class BackgroundService extends IntentService {
         @Override
         public void run() {
             totalTime += curTrack.duration;
+            Log.d("TEST", "Current totaltime: " + totalTime);
+            Log.d("TEST", "Current track duration: " + curTrack.duration);
             if (totalTime >= 360000) {
                 try {
                     Thread.sleep(System.currentTimeMillis() - startTime - 3000);
                 } catch (InterruptedException e) {
                 } finally {
-                    System.out.println("Last song finished");
+                    Log.d("TEST", "Last song finished");
                     mSpotifyAppRemote.getPlayerApi().pause();
                     playerState.cancel();
 
                 }
             }
-            System.out.println("Current song number: " + counter + " \n current song: " + curTrack.name);
+            Log.d("TEST", "Current song number: " + counter + " \n current song: " + curTrack.name);
             if (curTrack.name != firstTrack.name) {
                 counter++;
             }
             if (counter == numSongs) {
-                System.out.println("Last song starting. Timeout for " + TimeUnit.MILLISECONDS.toSeconds(curTrack.duration));
+
+                Log.d("TEST", "Last song starting. Timeout for " + TimeUnit.MILLISECONDS.toSeconds(curTrack.duration));
                 //sleep?
                 try {
                     // sleep 10 sec before fetching final sleep time because of callbacks - this can be implemented better?
@@ -57,7 +61,7 @@ public class BackgroundService extends IntentService {
                 } catch (InterruptedException e) {
 
                 } finally {
-                    System.out.println("Last song finished");
+                    Log.d("TEST", "Last song finished");
                     mSpotifyAppRemote.getPlayerApi().pause();
                     playerState.cancel();
                 }
@@ -72,10 +76,6 @@ public class BackgroundService extends IntentService {
      *
      * @param name Used to name the worker thread, important only for debugging.
      */
-    public BackgroundService(String name) {
-        super(name);
-    }
-
     public BackgroundService() {
         super("BackgroundService");
     }
@@ -83,10 +83,12 @@ public class BackgroundService extends IntentService {
     @Override
     protected void onHandleIntent(Intent intent) {
         startTime = System.currentTimeMillis();
-        System.out.println("YEEFMA");
+        PlayerApi playerApi = mSpotifyAppRemote.getPlayerApi();
+        playerApi.seekTo(0);
+        playerApi.resume();
+        Log.d("TEST", "YEE");
         getCurrentTrack();
-        counter = Integer.parseInt(intent.getStringExtra("counter"));
-        numSongs = Integer.parseInt(intent.getStringExtra("numSongs"));
+        numSongs = intent.getIntExtra("numSongs", 3);
         firstTrack = (new Gson()).fromJson(intent.getStringExtra("firstTrack"), Track.class);
         curTrack = firstTrack;
         startRepeatingTask();
@@ -95,23 +97,6 @@ public class BackgroundService extends IntentService {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
-    }
-
-    @Override
-    public void onCreate() {
-        Toast.makeText(this, "Service created!", Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onDestroy() {
-        /* IF YOU WANT THIS SERVICE KILLED WITH THE APP THEN UNCOMMENT THE FOLLOWING LINE */
-        //handler.removeCallbacks(runnable);
-        Toast.makeText(this, "Service stopped", Toast.LENGTH_LONG).show();
-    }
-
-    @Override
-    public void onStart(Intent intent, int startid) {
-        Toast.makeText(this, "Service started by user.", Toast.LENGTH_LONG).show();
     }
 
     private void startRepeatingTask() {
